@@ -39,6 +39,96 @@ export async function boot() {
 	setWindowListener();
 	setOnError({ lib, game, get, _status });
 
+	const isHeadless = typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs";
+	if (isHeadless) {
+		await loadConfig();
+
+		for (const name in get.config("translate")) {
+			lib.translate[name] = get.config("translate")[name];
+		}
+		if (globalThis.NONAME_HEADLESS_MODE) {
+			config.set("mode", globalThis.NONAME_HEADLESS_MODE);
+		}
+
+		await lib.init.promises.js("game", "package");
+		const pack = window.noname_package;
+		delete window.noname_package;
+		for (const name in pack.character) {
+			if (config.get("all").sgscharacters.includes(name) || config.get("hiddenCharacterPack").indexOf(name) == -1) {
+				config.get("all").characters.push(name);
+				lib.translate[name + "_character_config"] = pack.character[name];
+			}
+		}
+		for (const name in pack.card) {
+			if (config.get("all").sgscards.includes(name) || config.get("hiddenCardPack").indexOf(name) == -1) {
+				config.get("all").cards.push(name);
+				lib.translate[name + "_card_config"] = pack.card[name];
+			}
+		}
+		for (const name in pack.play) {
+			config.get("all").plays.push(name);
+			lib.translate[name + "_play_config"] = pack.play[name];
+		}
+		for (const name in pack.submode) {
+			for (const j in pack.submode[name]) {
+				lib.translate[name + "|" + j] = pack.submode[name][j];
+			}
+		}
+		for (const name in pack.mode) {
+			if (config.get("hiddenModePack").includes(name)) continue;
+			config.get("all").mode.push(name);
+			lib.translate[name] = pack.mode[name];
+			config.get("gameRecord")[name] ??= { data: {} };
+		}
+		if (config.get("all").mode.length == 0) {
+			config.get("all").mode.push("identity");
+			lib.translate.identity = "??";
+			config.get("gameRecord").identity ??= { data: {} };
+		}
+
+		await importMode(config.get("mode"));
+		for (const cardPack of config.get("all").cards) {
+			await importCardPack(cardPack);
+		}
+		for (const characterPack of config.get("all").characters) {
+			await importCharacterPack(characterPack);
+		}
+
+		await lib.init.promises.js(`${lib.assetURL}character`, "rank");
+		await lib.init.promises.js(`${lib.assetURL}character`, "replace");
+		await lib.init.promises.js(`${lib.assetURL}character`, "perfectPairs");
+		window.noname_character_rank ||= {};
+		window.noname_character_replace ||= {};
+		window.noname_character_perfectPairs ||= {};
+
+		lib.connectCharacterPack = [];
+		lib.connectCardPack = [];
+
+		const currentMode = lib.imported.mode[lib.config.mode];
+		if (!currentMode) {
+			throw new Error(`mode not loaded: ${lib.config.mode}`);
+		}
+		loadMode(currentMode);
+		lib.init.start = currentMode.start;
+		lib.init.startBefore = currentMode.startBefore;
+		if (lib.imported.character != null) {
+			Object.values(lib.imported.character).forEach(loadCharacter);
+		}
+		loadCardPile();
+		if (lib.imported.card != null) {
+			Object.values(lib.imported.card).forEach(loadCard);
+		}
+		if (lib.init.startBefore) {
+			lib.init.startBefore();
+			delete lib.init.startBefore;
+		}
+		ui.create.arena();
+		game.createEvent("game", false).setContent(lib.init.start);
+		delete lib.init.start;
+		game.loop();
+		return;
+	}
+
 	await loadConfig();
 
 	for (const name in get.config("translate")) {

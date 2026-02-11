@@ -44,7 +44,13 @@ function replaceName(path, name) {
 const TARGET_URL = replaceName(import.meta.url, "sandbox.js");
 const SANDBOX_EXPORT = {};
 
+const IS_HEADLESS = typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs";
+
 async function initializeSandboxRealms(enabled) {
+	if (IS_HEADLESS) {
+		SANDBOX_ENABLED = false;
+		return;
+	}
 	if (!enabled) {
 		SANDBOX_ENABLED = false;
 		return;

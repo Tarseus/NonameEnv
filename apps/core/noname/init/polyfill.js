@@ -478,6 +478,9 @@ Object.defineProperty(Array.prototype, "addArray", {
 	 */
 	value() {
 		for (const arr of arguments) {
+			if (!arr || typeof arr[Symbol.iterator] !== "function") {
+				continue;
+			}
 			for (const item of arr) {
 				this.add(item);
 			}
@@ -522,6 +525,9 @@ Object.defineProperty(Array.prototype, "removeArray", {
 	 */
 	value() {
 		for (const i of Array.from(arguments)) {
+			if (!i || typeof i[Symbol.iterator] !== "function") {
+				continue;
+			}
 			this.remove(...i);
 		}
 		return this;

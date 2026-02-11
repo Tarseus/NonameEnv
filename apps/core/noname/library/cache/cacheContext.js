@@ -1,5 +1,6 @@
 // import { game, get, lib } from "noname";
-import { MD5 } from "crypto-js";
+import CryptoJS from "crypto-js";
+const { MD5 } = CryptoJS;
 
 let cacheEnvironment = false;
 let cacheContext = undefined;

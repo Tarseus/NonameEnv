@@ -1,8 +1,9 @@
 import { lib, game, ui } from "noname";
 import { createApp } from "vue";
-
-import OnloadSplash from "./OnloadSplash.vue";
 import type { OnloadSplash as IOnloadSplash } from "./onload-splash"
+
+const isHeadless = typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs";
+const OnloadSplash = isHeadless ? null : (await import("./OnloadSplash.vue")).default;
 
 export class DefaultSplash implements IOnloadSplash {
 	readonly id: string = "style1";
@@ -15,6 +16,12 @@ export class DefaultSplash implements IOnloadSplash {
 
 	async init(node: HTMLDivElement, resolve: (mode: string) => void): Promise<void> {
 		this.resolve = resolve;
+
+		if (!OnloadSplash) {
+			this.clicked = node;
+			resolve("identity");
+			return;
+		}
 
 		if (lib.config.touchscreen) {
 			node.classList.add("touch");
@@ -40,6 +47,9 @@ export class DefaultSplash implements IOnloadSplash {
 	}
 
 	async dispose(node: HTMLDivElement): Promise<boolean> {
+		if (!OnloadSplash) {
+			return false;
+		}
 		node.delete(1000);
 
 		await new Promise<void>(resolve => this.clicked.listenTransition(resolve, 500));

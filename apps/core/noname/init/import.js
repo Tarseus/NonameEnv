@@ -1,9 +1,13 @@
-import { lib, game, _status } from "noname";
+import { lib, game, _status, rootURL } from "noname";
 /**
  * @param {string} name - 卡牌包名
  * @returns {Promise<void>}
  */
 export async function importCardPack(name) {
+	const isHeadless = typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs";
+	if (isHeadless && !["standard"].includes(name)) {
+		return;
+	}
 	await importFunction("card", `/card/${name}`);
 }
 
@@ -12,6 +16,10 @@ export async function importCardPack(name) {
  * @returns {Promise<void>}
  */
 export async function importCharacterPack(name) {
+	const isHeadless = typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs";
+	if (isHeadless && !["standard"].includes(name)) {
+		return;
+	}
 	const alreadyModernCharacterPack = lib.config.moderned_chracters || [];
 	const path = alreadyModernCharacterPack.includes(name) ? `/character/${name}/index` : `/character/${name}`;
 	await importFunction("character", path).catch(e => {
@@ -28,6 +36,8 @@ export async function importCharacterPack(name) {
  * @returns {Promise<void>}
  */
 export async function importExtension(name) {
+	const isHeadless = typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs";
+	if (isHeadless) return;
 	if (!game.hasExtension(name) && !lib.config.all.stockextension.includes(name)) {
 		// @ts-expect-error ignore
 		await game.import("extension", await createEmptyExtension(name));
@@ -67,10 +77,14 @@ export async function importMode(name) {
  * @returns {Promise<void>}
  */
 async function importFunction(type, path) {
-	const modeContent = await import(/* @vite-ignore */ path + ".js").catch(async e => {
+	const isNode = typeof process !== "undefined" && !!process.versions?.node;
+	const jsSpecifier = isNode ? new URL("." + path + ".js", rootURL).href : path + ".js";
+	const tsSpecifier = isNode ? new URL("." + path + ".ts", rootURL).href : path + ".ts";
+
+	const modeContent = await import(/* @vite-ignore */ jsSpecifier).catch(async e => {
 		if (window.isSecureContext) {
 			try {
-				return await import(/* @vite-ignore */ path + ".ts");
+				return await import(/* @vite-ignore */ tsSpecifier);
 			} catch {
 				throw e;
 			}

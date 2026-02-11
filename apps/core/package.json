@@ -71,8 +71,10 @@
         "@vitejs/plugin-vue": "^6.0.3",
         "concurrently": "^9.2.1",
         "cross-env": "^10.1.0",
+        "fake-indexeddb": "^6.2.5",
         "fs-extra": "^11.3.3",
         "glob": "^13.0.0",
+        "jsdom": "^25.0.1",
         "minimist": "^1.2.8",
         "vite": "^7.3.1",
         "vite-plugin-static-copy": "^3.1.4"

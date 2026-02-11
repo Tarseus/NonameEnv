@@ -1,7 +1,8 @@
 // 声明：沙盒维护的是服务器秩序，让服务器秩序不会因为非房主的玩家以及旁观者的影响，并在此基础上维护玩家设备不受危险代码攻击
 // 但沙盒不会也没有办法维护恶意服务器/房主对于游戏规则的破坏，请玩家尽量选择官方或其他安全的服务器，同时选择一个受信任的玩家作为房主
 
-import { MD5 } from "crypto-js";
+import CryptoJS from "crypto-js";
+const { MD5 } = CryptoJS;
 
 // 是否强制所有模式下使用沙盒
 const SANDBOX_FORCED = false;
@@ -24,7 +25,7 @@ const TRUSTED_IP_MD5 = Object.freeze([
 
 // 声明导入类
 /** @type {boolean} */
-let SANDBOX_ENABLED = true;
+let SANDBOX_ENABLED = !(typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs");
 /** @type {typeof import("./sandbox.js").AccessAction} */
 let AccessAction;
 /** @type {typeof import("./sandbox.js").Domain} */
@@ -476,6 +477,13 @@ function _exec2(x, scope = {}) {
 async function initSecurity({ lib, game, ui, get, ai, _status }) {
 	if (initialized) {
 		throw new Error("security 已经被初始化过了");
+	}
+
+	const isHeadless = typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs";
+	if (isHeadless) {
+		SANDBOX_ENABLED = false;
+		initialized = true;
+		return;
 	}
 
 	const sandbox = await import("./sandbox.js");

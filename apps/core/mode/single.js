@@ -1147,6 +1147,7 @@ export default () => {
 					_status.characterChoice.all.removeArray(result.links);
 					game.broadcastAll(
 						function (link, choosing, first, id) {
+							if (!link || !link.includes) return;
 							var dialog = get.idDialog(id);
 							if (dialog) {
 								if (choosing == game.me) {
@@ -1181,10 +1182,17 @@ export default () => {
 						return Math.random();
 					};
 					"step 4";
+					if (typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs") {
+						if (!result || !result.links || !result.links.length) {
+							const base = Array.isArray(_status.event?.canChoose) ? _status.event.canChoose : _status.characterChoice.all;
+							result = { links: base.randomRemove(2) };
+						}
+					}
 					_status.characterChoice.zhu.addArray(result.links);
 					_status.characterChoice.all.removeArray(result.links);
 					game.broadcastAll(
 						function (link, choosing, first, id) {
+							if (!link || !link.includes) return;
 							var dialog = get.idDialog(id);
 							if (dialog) {
 								if (choosing == game.me) {
@@ -1219,10 +1227,17 @@ export default () => {
 						return Math.random();
 					};
 					"step 5";
+					if (typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs") {
+						if (!result || !result.links || !result.links.length) {
+							const base = Array.isArray(_status.event?.canChoose) ? _status.event.canChoose : _status.characterChoice.all;
+							result = { links: base.randomRemove(2) };
+						}
+					}
 					_status.characterChoice.fan.addArray(result.links);
 					_status.characterChoice.all.removeArray(result.links);
 					game.broadcastAll(
 						function (link, choosing, first, id) {
+							if (!link || !link.includes) return;
 							var dialog = get.idDialog(id);
 							if (dialog) {
 								if (choosing == game.me) {
@@ -1257,6 +1272,12 @@ export default () => {
 						return Math.random();
 					};
 					"step 6";
+					if (typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs") {
+						if (!result || !result.links || !result.links.length) {
+							const base = Array.isArray(_status.event?.canChoose) ? _status.event.canChoose : _status.characterChoice.all;
+							result = { links: base.randomRemove(1) };
+						}
+					}
 					_status.characterChoice.zhu.addArray(result.links);
 					_status.characterChoice.all.removeArray(result.links);
 					game.broadcastAll(
@@ -1290,6 +1311,12 @@ export default () => {
 					"step 8";
 					game.me.chooseButton(true, ["请选择出场武将", [_status.characterChoice[game.me.identity], "character"]], _status.mode == "changban" ? 2 : 1);
 					"step 9";
+					if (typeof localStorage !== "undefined" && localStorage.getItem("noname_inited") === "nodejs") {
+						if (!result || !result.links || !result.links.length) {
+							const count = _status.mode == "changban" ? 2 : 1;
+							result = { links: _status.characterChoice[game.me.identity].randomRemove(count) };
+						}
+					}
 					game.me.init(result.links[0], _status.mode == "changban" ? result.links[1] : null);
 					_status.characterChoice[game.me.identity].removeArray(result.links);
 					var list = _status.characterChoice[game.me.enemy.identity].randomRemove(_status.mode == "changban" ? 2 : 1);
